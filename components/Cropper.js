@@ -8,7 +8,6 @@ import {
   Animated,
 } from 'react-native';
 import Svg, {Polygon} from 'react-native-svg';
-import RNOpencv3 from 'react-native-opencv3';
 
 const AnimatedPolygon = Animated.createAnimatedComponent(Polygon);
 
@@ -39,7 +38,7 @@ class CustomCrop extends Component {
               props.rectangleCoordinates.topRight,
               true,
             )
-          : {x: Dimensions.get('window').width - 100, y: 100},
+          : {x: Dimensions.get('window').width - 50, y: 100},
       ),
       bottomLeft: new Animated.ValueXY(
         props.rectangleCoordinates
@@ -47,7 +46,7 @@ class CustomCrop extends Component {
               props.rectangleCoordinates.bottomLeft,
               true,
             )
-          : {x: 100, y: this.state.viewHeight - 100},
+          : {x: 100, y: this.state.viewHeight - 50},
       ),
       bottomRight: new Animated.ValueXY(
         props.rectangleCoordinates
@@ -57,7 +56,7 @@ class CustomCrop extends Component {
             )
           : {
               x: Dimensions.get('window').width - 100,
-              y: this.state.viewHeight - 100,
+              y: this.state.viewHeight - 50,
             },
       ),
     };
