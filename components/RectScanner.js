@@ -143,6 +143,7 @@ const styles = StyleSheet.create({
 
 export default class DocumentScanner extends PureComponent {
   static propTypes = {
+    getCoordination: PropTypes.func,
     cameraIsOn: PropTypes.bool,
     onLayout: PropTypes.func,
     onSkip: PropTypes.func,
@@ -156,6 +157,7 @@ export default class DocumentScanner extends PureComponent {
 
   static defaultProps = {
     cameraIsOn: undefined,
+    getCoordination: () => {},
     onLayout: () => {},
     onSkip: () => {},
     onCancel: () => {},
@@ -443,12 +445,12 @@ export default class DocumentScanner extends PureComponent {
                     style={[styles.button, disabledStyle]}
                     onPress={cameraIsDisabled ? () => null : this.props.onSkip}
                     activeOpacity={0.8}>
-                    <Icon
+                    {/* <Icon
                       name="md-arrow-round-forward"
                       size={40}
                       color="white"
                       style={styles.buttonIcon}
-                    />
+                    /> */}
                     <Text style={styles.buttonText}>Skip</Text>
                   </TouchableOpacity>
                 </View>
@@ -506,12 +508,12 @@ export default class DocumentScanner extends PureComponent {
                   style={[styles.button, disabledStyle]}
                   onPress={cameraIsDisabled ? () => null : this.props.onSkip}
                   activeOpacity={0.8}>
-                  <Icon
+                  {/* <Icon
                     name="md-arrow-round-forward"
                     size={40}
                     color="white"
                     style={styles.buttonIcon}
-                  />
+                  /> */}
                   <Text style={styles.buttonText}>Skip</Text>
                 </TouchableOpacity>
               )}
@@ -578,12 +580,12 @@ export default class DocumentScanner extends PureComponent {
                   style={[styles.button, disabledStyle]}
                   onPress={cameraIsDisabled ? () => null : this.props.onSkip}
                   activeOpacity={0.8}>
-                  <Icon
+                  {/* <Icon
                     name="md-arrow-round-forward"
                     size={40}
                     color="white"
                     style={styles.buttonIcon}
-                  />
+                  /> */}
                   <Text style={styles.buttonText}>Skip</Text>
                 </TouchableOpacity>
               )}
@@ -646,16 +648,14 @@ export default class DocumentScanner extends PureComponent {
             borderColor="rgb(255,181,6)"
             borderWidth={4}
             // == These let you auto capture and change the overlay style on detection ==
-            // detectedBackgroundColor="rgba(255,181,6, 0.3)"
-            // detectedBorderWidth={6}
-            // detectedBorderColor="rgb(255,218,124)"
-            // onDetectedCapture={this.capture}
-            // allowDetection
+            detectedBackgroundColor="rgba(255,181,6, 0.3)"
+            detectedBorderWidth={6}
+            detectedBorderColor="rgb(255,218,124)"
+            onDetectedCapture={this.capture}
+            allowDetection
           />
         );
       }
-
-      console.log(this.state.detectedRectangle);
 
       // NOTE: I set the background color on here because for some reason the view doesn't line up correctly otherwise. It's a weird quirk I noticed.
       return (
@@ -674,10 +674,19 @@ export default class DocumentScanner extends PureComponent {
             enableTorch={this.state.flashEnabled}
             filterId={this.state.filterId}
             ref={this.camera}
-            capturedQuality={0.6}
-            onRectangleDetected={({detectedRectangle}) =>
-              this.setState({detectedRectangle})
-            }
+            capturedQuality={1}
+            onRectangleDetected={({detectedRectangle}) => {
+              // setInterval(() => {
+              //   console.log('1秒');
+              // }, 3000);
+              this.setState({detectedRectangle});
+              // don't let it be 'false'
+              detectedRectangle &&
+                this.props.getCoordination(detectedRectangle);
+            }}
+            // onRectangleDetected={data =>
+            //   this.setState({detectedRectangle: data})
+            // }
             onDeviceSetup={this.onDeviceSetup}
             onTorchChanged={({enabled}) =>
               this.setState({flashEnabled: enabled})
@@ -738,12 +747,12 @@ export default class DocumentScanner extends PureComponent {
                 style={[styles.button, {marginTop: 8}]}
                 onPress={this.props.onSkip}
                 activeOpacity={0.8}>
-                <Icon
+                {/* <Icon
                   name="md-arrow-round-forward"
                   size={40}
                   color="white"
                   style={styles.buttonIcon}
-                />
+                /> */}
                 <Text style={styles.buttonText}>Skip</Text>
               </TouchableOpacity>
             )}
@@ -785,3 +794,164 @@ export default class DocumentScanner extends PureComponent {
     );
   }
 }
+
+// import React, {useEffect, useRef, useState} from 'react';
+// import {
+//   View,
+//   StyleSheet,
+//   Text,
+//   TouchableOpacity,
+//   Button,
+//   Image,
+//   Platform,
+//   Dimensions,
+// } from 'react-native';
+// import Permissions from 'react-native-permissions';
+// import Scanner, {RectangleOverlay} from 'react-native-rectangle-scanner';
+
+// function DocumentScanner({navigation}) {
+//   const scanner = useRef(null);
+//   const [data, setData] = useState({});
+//   const [allowed, setAllowed] = useState(false);
+//   const [device, setDevice] = useState({
+//     initialized: false,
+//     hasCamera: false,
+//     permissionToUseCamera: false,
+//     flashIsAvailable: false,
+//     previewHeightPercent: 1,
+//     previewWidthPercent: 1,
+//   });
+//   const [loadingCamera, setLoadingCamera] = useState(false);
+//   const [processingImage, setProcessingImage] = useState(false);
+//   const [detectedRectangle, setDetectedRectangle] = useState({});
+//   const [preview, setPreview] = useState({
+//     reviewHeightPercent: 1,
+//     previewWidthPercent: 1,
+//   });
+
+//   useEffect(() => {
+//     async function requestCamera() {
+//       const result = await Permissions.request(
+//         Platform.OS === 'android'
+//           ? 'android.permission.CAMERA'
+//           : 'ios.permission.CAMERA',
+//       );
+//       if (result === 'granted') {
+//         setAllowed(true);
+//       }
+//     }
+//     requestCamera();
+//   }, []);
+
+//   function handleOnPress() {
+//     scanner.current.capture();
+//   }
+//   if (data.initialImage) {
+//     console.log('data', data);
+//     console.log(detectedRectangle);
+//     // navigation.navigate('Image Cropper', {
+//     //   imageParam: data.initialImage,
+//     //   rectangleCoordinates: detectedRectangle,
+//     // });
+//   }
+
+//   const getPreviewSize = () => {
+//     const dimensions = Dimensions.get('window');
+//     // We use set margin amounts because for some reasons the percentage values don't align the camera preview in the center correctly.
+//     const heightMargin =
+//       ((1 - preview.previewHeightPercent) * dimensions.height) / 2;
+//     const widthMargin =
+//       ((1 - preview.previewWidthPercent) * dimensions.width) / 2;
+//     if (dimensions.height > dimensions.width) {
+//       return {
+//         height: preview.previewHeightPercent,
+//         width: preview.previewWidthPercent,
+//         marginTop: heightMargin,
+//         marginLeft: widthMargin,
+//       };
+//     }
+//   };
+
+//   const rectangleOverlay = () => {
+//     const previewSize = this.getPreviewSize();
+//     return (
+//       <RectangleOverlay
+//         detectedRectangle={detectedRectangle}
+//         previewRatio={previewSize}
+//         backgroundColor="rgba(255,181,6, 0.2)"
+//         borderColor="rgb(255,181,6)"
+//         borderWidth={4}
+//         // == These let you auto capture and change the overlay style on detection ==
+//         detectedBackgroundColor="rgba(255,181,6, 0.3)"
+//         detectedBorderWidth={6}
+//         detectedBorderColor="rgb(255,218,124)"
+//         onDetectedCapture={this.capture}
+//         allowDetection
+//       />
+//     );
+//   };
+
+//   const onDeviceSetup = deviceDetails => {
+//     const {previewHeightPercent, previewWidthPercent} = deviceDetails;
+//     setPreview({
+//       previewHeightPercent: previewHeightPercent || 1,
+//       previewWidthPercent: previewWidthPercent || 1,
+//     });
+//   };
+
+//   return (
+//     <>
+//       <Text>Receipt Scanner</Text>
+//       <Scanner
+//         useBase64={false}
+//         ref={scanner}
+//         style={styles.scanner}
+//         onPictureTaken={setData}
+//         overlayColor="rgba(255, 130, 0, 0.7)"
+//         enableTorch={false}
+//         capturedQuality={0.5}
+//         manualOnly={true}
+//         onRectangleDetected={({detectedRectangle}) =>
+//           setDetectedRectangle(detectedRectangle)
+//         }
+//         onDeviceSetup={onDeviceSetup}
+//       />
+//       {rectangleOverlay}
+//       <View style={styles.cameraButton}>
+//         <Text>Camera</Text>
+//       </View>
+//     </>
+//   );
+// }
+
+// const styles = StyleSheet.create({
+//   scanner: {
+//     flex: 1,
+//     aspectRatio: undefined,
+//   },
+//   button: {
+//     alignSelf: 'center',
+//     position: 'absolute',
+//     bottom: 32,
+//   },
+//   buttonText: {
+//     backgroundColor: 'rgba(245, 252, 255, 0.7)',
+//     fontSize: 32,
+//   },
+//   preview: {
+//     flex: 1,
+//     width: '100%',
+//     resizeMode: 'cover',
+//   },
+//   permissions: {
+//     flex: 1,
+//     justifyContent: 'center',
+//     alignItems: 'center',
+//   },
+//   cameraButton: {
+//     justifyContent: 'center',
+//     alignItems: 'center',
+//   },
+// });
+
+// export default DocumentScanner;
